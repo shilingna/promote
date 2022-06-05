@@ -87,6 +87,21 @@ func updateRow() {
 	fmt.Printf("update success, affected rows: %d\n", n)
 }
 
+// deleteRow 删除数据
+func deleteRow() {
+	ret, err := dbDemo.Exec("deleteById from user_go wherr id = ?", 2)
+	if err != nil {
+		fmt.Printf("deleteById failed, err:%v\n", err)
+		return
+	}
+	n, err := ret.RowsAffected() // 操作影响的行数
+	if err != nil {
+		fmt.Printf("get RowsAffected failed, err:%v\n", err)
+		return
+	}
+	fmt.Printf("deleteId success, affected rows:%d\n", n)
+}
+
 // prepareQuery 预处理查询
 func prepareQuery() {
 	stmt, err := dbDemo.Prepare("select id,name,phone,from `user_go` where id > ?")
@@ -109,4 +124,67 @@ func prepareQuery() {
 		}
 		fmt.Printf("id:%d name:%s phone:%s\n", u.id, u.Name, &u.Phone)
 	}
+}
+
+// prepareInsert 预处理插入示例
+func prepareInsert() {
+	stmt, err := dbDemo.Prepare("insert into user_go (name,phone) values (?,?);")
+	if err != nil {
+		fmt.Printf("prepare failed,err:%v\n", err)
+		return
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec("张飞", 13719049801)
+	if err != nil {
+		fmt.Printf("insert failed, err:%v\n", err)
+		return
+	}
+	_, err = stmt.Exec("刘备", 123123123123)
+	if err != nil {
+		fmt.Printf("insert failed, err:%v\n", err)
+		return
+	}
+	fmt.Println("insert success")
+}
+
+// transaction 事务
+func transaction() {
+	tx, err := dbDemo.Begin() // 开启事务
+	if err != nil {
+		if tx != nil {
+			tx.Rollback() // 回滚
+		}
+		fmt.Printf("begin trans failed, err:%v\n", err)
+		return
+	}
+	_, err = tx.Exec("update user_go set name='张飞' where id=?", 1)
+	if err != nil {
+		tx.Rollback()
+		fmt.Printf("exec sql1 failed, err:%v\n", err)
+		return
+	}
+	_, err = tx.Exec("update user_go set name='吕布' where id =?", 3)
+	if err != nil {
+		tx.Rollback() // 回滚
+		fmt.Printf("exec sql2 failed, err:%v\n", err)
+		return
+	}
+	err = tx.Commit() // 提交事务
+	if err != nil {
+		tx.Rollback() // 回滚
+		fmt.Printf("commit failed, err %v\n", err)
+		return
+	}
+	fmt.Println("exec transaction success!")
+}
+
+func main() {
+	/*queryRow()
+	queryMultiRow()
+	insertRow()
+	updateRow()
+	deleteRow()
+	prepareInsert()
+	prepareQuery()*/
+	transaction()
 }
