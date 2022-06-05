@@ -56,6 +56,7 @@ func NewSessionManager(providerName, cookieName string, maxLifetime int64) (*Ses
 	if !ok {
 		return nil, fmt.Errorf("session: unknown provide %q(forgotten import?)", providerName)
 	}
+	// 返回一个session对象
 	return &SessionManager{
 		cookieName:  cookieName,
 		maxLifeTime: maxLifetime,
